@@ -9,10 +9,10 @@ class Transaction:
     amount:int
     signature:bytes
 
-#class Block:
-    #header
-    #transactions[]:Transaction
-    #footer
+class Block:
+    header
+    transactions[]:Transaction
+    footer
 
 def main():
     message = b"Hello World!"
@@ -88,8 +88,6 @@ def verifyTransaction(transaction:Transaction, pk_sender:ec.EllipticCurvePublicK
     except Exception as e:
         print(f"❌ Signature verification failed: {e}")
 
-
-    
 
 if __name__ == "__main__":
     main()
