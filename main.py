@@ -15,7 +15,7 @@ class Block:
     previous_block_hash:hashes.SHA256
     difficulty:np.uint32
     transactions:Transaction = []
-    nounce:np.uint32
+    nonce:np.uint32
 
 def main():
     sk_key1, pub_key1 = import_key_pair("keys/ecc-key.pem", "keys/ecc-public.pem")
@@ -35,19 +35,42 @@ def main():
     
     print(f"Previous block hash : \n{previous_block.hex()}")
     
-    difficulty = np.uint32(3)
+    difficulty = np.uint32(5)
 
     transactions:Transaction = []
     transactions.append(new_transaction)
 
-    find_nounce(previous_block, difficulty, transactions)
+    find_nonce(previous_block, difficulty, transactions)
 
 
-def find_nounce(previous_block_hash:hashes.SHA256, difficulty:np.uint32, transactions:Transaction = [])->Block:
-    nounce = 0
-    #block = previous_block_hash + difficulty.tobytes() + transactions + 
+def find_nonce(previous_block_hash:hashes.SHA256, difficulty:np.uint32, transactions:Transaction = [])->Block:
+    print("\n\n")
+    found = 0
+    nonce = np.uint32(0)
+    serialised_tx = serialize_transaction(transactions[0])
+    while(found == 0):
+        block = previous_block_hash + int(difficulty).to_bytes(4, byteorder='big') + serialised_tx + int(nonce).to_bytes(4, byteorder='big')
+        digest = hashes.Hash(hashes.SHA256()) 
+        digest.update(block)
+        hashed_block = digest.finalize()
+        hashed_block_hex = hashed_block.hex()
+        print(hashed_block_hex)
+        if hashed_block_hex.startswith('0' * difficulty):
+            print(Fore.RED + "found nonce!" + Style.RESET_ALL)
+            print(Fore.YELLOW + f"nonce : {nonce}" + Style.RESET_ALL)
+            found = 1
+        nonce += 1
 
 
+def serialize_transaction(tx: Transaction) -> bytes:
+    # Serialize public keys
+    pk_sender_bytes = tx.pk_sender.public_bytes(encoding=serialization.Encoding.DER, format=serialization.PublicFormat.SubjectPublicKeyInfo)
+    pk_receiver_bytes = tx.pk_receiver.public_bytes(encoding=serialization.Encoding.DER,format=serialization.PublicFormat.SubjectPublicKeyInfo)
+    
+    # Serialize amount (unsigned 32-bit integer)
+    amount_bytes = int(tx.amount).to_bytes(4, byteorder='big')
+    
+    return pk_sender_bytes + pk_receiver_bytes + amount_bytes + tx.signature
     
 
 
