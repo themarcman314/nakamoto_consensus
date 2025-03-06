@@ -21,7 +21,7 @@ def main():
     sk_key1, pub_key1 = import_key_pair("keys/ecc-key.pem", "keys/ecc-public.pem")
     sk_key2, pub_key2 = import_key_pair("keys/ecc-key2.pem", "keys/ecc-public2.pem")
 
-    new_transaction = createTransaction(sk_key1, pub_key1, pub_key2, 2)
+    new_transaction = createTransaction(sk_key1, pub_key1, pub_key2, 14)
     printTransaction(new_transaction)
     
     verifyTransaction(new_transaction, new_transaction.pk_sender)
@@ -31,34 +31,75 @@ def main():
     random_hash = hashes.Hash(hashes.SHA256())
     random_hash.update(random_data.encode("ascii"))
 
-    previous_block = random_hash.finalize()
+    previous_block_hash = random_hash.finalize()
     
-    print(f"Previous block hash : \n{previous_block.hex()}")
+    print(f"Previous block hash :\n{previous_block_hash.hex()}")
     
-    difficulty = np.uint32(5)
+    difficulty = np.uint32(4)
 
     transactions:Transaction = []
     transactions.append(new_transaction)
 
-    find_nonce(previous_block, difficulty, transactions)
+    nonce = find_nonce(previous_block_hash, difficulty, transactions)
+
+    new_block = create_block(previous_block_hash, difficulty, nonce, transactions)
+    print("\n")
+    print_block(new_block)
 
 
-def find_nonce(previous_block_hash:hashes.SHA256, difficulty:np.uint32, transactions:Transaction = [])->Block:
+
+def print_block(block:Block):
+    print("=================================================")
+    print("Previous block hash :\n" + Fore.CYAN + f"{block.previous_block_hash}" + Style.RESET_ALL)
+    print("Difficulty :\n" + Fore.CYAN + f"{block.difficulty}" + Style.RESET_ALL)
+    print("Transactions :")
+    for tx in block.transactions:
+        print(Fore.GREEN + "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" + Style.RESET_ALL)
+        print(printTransaction(tx))
+        print(Fore.GREEN + "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" + Style.RESET_ALL)
+    print("Nonce :\n" + Fore.CYAN + f"{block.nonce}" + Style.RESET_ALL)
+    print("=================================================")
+
+def verify_block(previous_block_hash:hashes.SHA256, new_block:Block):
+    for tx in transactions:
+        serialised_tx += serialize_transaction(tx)
+    block = new_block.previous_block_hash + int(new_block.difficulty).to_bytes(4, byteorder='big') + new_block.serialised_tx + int(new_block.nonce).to_bytes(4, byteorder='big')
+    digest = hashes.Hash(hashes.SHA256()) 
+    digest.update(block)
+    hashed_block = digest.finalize()
+    hashed_block_hex = hashed_block.hex()
+    print(hashed_block_hex)
+    if hashed_block_hex.startswith('0' * new_block.difficulty):
+        print("Proof of work is verified!")
+
+
+
+def create_block(previous_block_hash:hashes.SHA256, difficulty:np.uint32, nonce:np.uint32, transactions:Transaction = [])->Block:
+    block = Block()
+    block.previous_block_hash = previous_block_hash
+    block.difficulty = difficulty
+    block.transactions = transactions
+    block.nonce = nonce
+    return block
+
+def find_nonce(previous_block_hash:hashes.SHA256, difficulty:np.uint32, transactions:Transaction = [])->np.uint32:
     print("\n\n")
     found = 0
     nonce = np.uint32(0)
-    serialised_tx = serialize_transaction(transactions[0])
+    serialised_tx = b''
+    for tx in transactions:
+        serialised_tx += serialize_transaction(tx)
     while(found == 0):
         block = previous_block_hash + int(difficulty).to_bytes(4, byteorder='big') + serialised_tx + int(nonce).to_bytes(4, byteorder='big')
         digest = hashes.Hash(hashes.SHA256()) 
         digest.update(block)
         hashed_block = digest.finalize()
         hashed_block_hex = hashed_block.hex()
-        print(hashed_block_hex)
+        #print(hashed_block_hex)
         if hashed_block_hex.startswith('0' * difficulty):
             print(Fore.RED + "found nonce!" + Style.RESET_ALL)
             print(Fore.YELLOW + f"nonce : {nonce}" + Style.RESET_ALL)
-            found = 1
+            return nonce
         nonce += 1
 
 
@@ -112,6 +153,8 @@ def createTransaction(sk_sender:ec.EllipticCurvePrivateKey, pk_sender:ec.Ellipti
     new_transaction.signature = sk_sender.sign(
        message,
        ec.ECDSA(hashes.SHA256()))
+
+    new_transaction.signature = b'\x00' * 70 # dummy signature
     return new_transaction
 
 def printTransaction(my_transaction:Transaction):
@@ -126,7 +169,7 @@ def printTransaction(my_transaction:Transaction):
 
     print("pk sender : \n" + Fore.CYAN + f"{pk_sender_pem}\n" + Style.RESET_ALL)
     print("pk receiver : \n" + Fore.CYAN + f"{pk_receiver_pem}\n" + Style.RESET_ALL)
-    print(Fore.MAGENTA + f"transaction amount : {my_transaction.amount}\n" + Style.RESET_ALL)
+    print("transaction amount :\n" + Fore.MAGENTA + f"{my_transaction.amount}\n" + Style.RESET_ALL)
     print("signature : \n" + Fore.CYAN + f"{my_transaction.signature}\n" + Style.RESET_ALL)
 
 def verifyTransaction(transaction:Transaction, pk_sender:ec.EllipticCurvePublicKey):
