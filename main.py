@@ -50,14 +50,18 @@ def main():
 
 def print_block(block:Block):
     print("=================================================")
+    print("=================================================")
     print("Previous block hash :\n" + Fore.CYAN + f"{block.previous_block_hash}" + Style.RESET_ALL)
     print("Difficulty :\n" + Fore.CYAN + f"{block.difficulty}" + Style.RESET_ALL)
     print("Transactions :")
     for tx in block.transactions:
-        print(Fore.GREEN + "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" + Style.RESET_ALL)
-        print(printTransaction(tx))
-        print(Fore.GREEN + "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" + Style.RESET_ALL)
+        print("$   $    $    $    $    $    $    $    $    $    $")
+        print(Style.NORMAL + Back.GREEN + Fore.BLACK, end="")
+        printTransaction(tx)
+        print(Style.RESET_ALL, end="")
+        print("$   $    $    $    $    $    $    $    $    $    $")
     print("Nonce :\n" + Fore.CYAN + f"{block.nonce}" + Style.RESET_ALL)
+    print("=================================================")
     print("=================================================")
 
 def verify_block(previous_block_hash:hashes.SHA256, new_block:Block):
@@ -167,10 +171,10 @@ def printTransaction(my_transaction:Transaction):
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
 
-    print("pk sender : \n" + Fore.CYAN + f"{pk_sender_pem}\n" + Style.RESET_ALL)
-    print("pk receiver : \n" + Fore.CYAN + f"{pk_receiver_pem}\n" + Style.RESET_ALL)
-    print("transaction amount :\n" + Fore.MAGENTA + f"{my_transaction.amount}\n" + Style.RESET_ALL)
-    print("signature : \n" + Fore.CYAN + f"{my_transaction.signature}\n" + Style.RESET_ALL)
+    print("pk sender : \n" + f"{pk_sender_pem}\n")
+    print("pk receiver : \n" + f"{pk_receiver_pem}\n")
+    print("transaction amount :\n" + f"{my_transaction.amount}\n")
+    print("signature : \n" + f"{my_transaction.signature}")
 
 def verifyTransaction(transaction:Transaction, pk_sender:ec.EllipticCurvePublicKey):
     pk_sender:ec.EllipticCurvePublicKey
