@@ -103,6 +103,7 @@ def find_nonce(previous_block_hash:hashes.SHA256, difficulty:np.uint32, transact
         if hashed_block_hex.startswith('0' * difficulty):
             print(Fore.RED + "found nonce!" + Style.RESET_ALL)
             print(Fore.YELLOW + f"nonce : {nonce}" + Style.RESET_ALL)
+            print(hashed_block_hex)
             return nonce
         nonce += 1
 
