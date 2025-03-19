@@ -46,11 +46,10 @@ def main():
     print("\n")
     print_block(new_block)
 
-    verify_block(previous_block_hash, new_block)
-
-
-
-
+    block_chain = []
+    if(verify_block(previous_block_hash, new_block) == True):
+        block_chain.append(new_block)
+        print(Fore.GREEN + "Added block to chain" + Style.RESET_ALL)
 
 def print_block(block:Block):
     print("=================================================")
@@ -81,8 +80,9 @@ def verify_block(previous_block_hash:hashes.SHA256, new_block:Block):
     print("Block hash :\n" + Fore.CYAN + f"{hashed_block_hex}" + Style.RESET_ALL)
     if hashed_block_hex.startswith('0' * new_block.difficulty):
         print(Fore.GREEN + "✅ Proof of work is verified!" + Style.RESET_ALL)
-    else:
-        print(Fore.RED + "Proof of work is did not verified" + Fore.RESET_ALL)
+        return True
+    print(Fore.RED + "Proof of work is did not verified" + Fore.RESET_ALL)
+    return False
 
 
 
