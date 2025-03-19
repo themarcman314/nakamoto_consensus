@@ -46,6 +46,10 @@ def main():
     print("\n")
     print_block(new_block)
 
+    verify_block(previous_block_hash, new_block)
+
+
+
 
 
 def print_block(block:Block):
@@ -65,16 +69,20 @@ def print_block(block:Block):
     print("=================================================")
 
 def verify_block(previous_block_hash:hashes.SHA256, new_block:Block):
-    for tx in transactions:
+    serialised_tx = b''
+    for tx in new_block.transactions:
         serialised_tx += serialize_transaction(tx)
-    block = new_block.previous_block_hash + int(new_block.difficulty).to_bytes(4, byteorder='big') + new_block.serialised_tx + int(new_block.nonce).to_bytes(4, byteorder='big')
+    block = new_block.previous_block_hash + int(new_block.difficulty).to_bytes(4, byteorder='big') + serialised_tx + int(new_block.nonce).to_bytes(4, byteorder='big')
     digest = hashes.Hash(hashes.SHA256()) 
     digest.update(block)
     hashed_block = digest.finalize()
     hashed_block_hex = hashed_block.hex()
-    print(hashed_block_hex)
+
+    print("Block hash :\n" + Fore.CYAN + f"{hashed_block_hex}" + Style.RESET_ALL)
     if hashed_block_hex.startswith('0' * new_block.difficulty):
-        print("Proof of work is verified!")
+        print(Fore.GREEN + "✅ Proof of work is verified!" + Style.RESET_ALL)
+    else:
+        print(Fore.RED + "Proof of work is did not verified" + Fore.RESET_ALL)
 
 
 
