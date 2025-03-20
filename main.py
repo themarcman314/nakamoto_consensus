@@ -14,6 +14,7 @@ class Transaction:
         self.pk_receiver = pk_receiver
         self.amount = np.uint32(amount)
         self.signature = b''
+        print("Creating new transaction...")
     
 
     def serialize(self) -> bytes:
@@ -36,7 +37,7 @@ class Transaction:
         # Use ECDSA to sign the message
         message = self.serialize()
         self.signature = sk_sender.sign(message, ec.ECDSA(hashes.SHA256()))
-        self.signature = b'\x00' * 70 # dummy signature
+        #self.signature = b'\x00' * 70 # dummy signature
 
 
     def verify(self):
@@ -46,7 +47,7 @@ class Transaction:
             print(Fore.GREEN + "✅ Signature is valid!" + Style.RESET_ALL)
             return True
         except Exception as e:
-            print(f"❌ Signature verification failed: {e}")
+            print(Fore.RED + f"❌ Signature verification failed: {e}" + Style.RESET_ALL)
             return False
 
     def __str__(self) -> str:
@@ -103,6 +104,8 @@ class Block:
             if current_hash.startswith('0' * self.difficulty):
                 print(f"Nonce found: {self.nonce}")
                 print(f"Block hash: {current_hash}")
+                elapsed = time.time() - start_time
+                print(f"Found block in {elapsed:.2f} seconds")
                 break
             self.nonce += 1
 
@@ -116,8 +119,14 @@ class Block:
                 f"Block Hash: {self.compute_hash().hex()}\n")
 
 def main():
-    sk_key1, pub_key1 = wallet.import_key_pair("keys/ecc-key.pem", "keys/ecc-public.pem")
-    sk_key2, pub_key2 = wallet.import_key_pair("keys/ecc-key2.pem", "keys/ecc-public2.pem")
+    
+    w = wallet.Wallet()
+    w.save("something")
+    
+
+
+    sk_key1, pub_key1 = wallet.import_key_pair("wallet/ecc-key.pem", "wallet/ecc-public.pem")
+    sk_key2, pub_key2 = wallet.import_key_pair("wallet/ecc-key2.pem", "wallet/ecc-public2.pem")
 
     t1 = Transaction(pub_key1, pub_key2, 3)
     t1.sign(sk_key1)
@@ -131,13 +140,41 @@ def main():
 
     b1 = Block(previous_block_hash, 4, [t1])
     print("\n\n")
-    print(b1)
+    #print(b1)
     b1.mine()
 
     if(b1.has_valid_proof() == True):
-       print("Nonce is valid!")
+       print(Fore.GREEN + "✅ Nonce is valid!" + Style.RESET_ALL)
     else:
-        print("Nonce is not valid")
+        print(Fore.RED + "❌ Nonce is not valid" + Style.RESET_ALL)
+
+    t2 = Transaction(pub_key1, pub_key2, 54)
+    t2.sign(sk_key1)
+    t2.verify()
+
+    t3 = Transaction(pub_key1, pub_key2, 4)
+    t3.sign(sk_key1)
+    t3.verify()
+
+    t4 = Transaction(pub_key1, pub_key2, 23)
+    t4.sign(sk_key1)
+    t4.verify()
+
+    transactions = []
+    transactions.append(t2)
+    transactions.append(t3)
+    transactions.append(t4)
+
+    b2 = Block(b1.compute_hash(), 4, transactions)
+    print("\n\n")
+    #print(b1)
+    b2.mine()
+
+    if(b2.has_valid_proof() == True):
+       print(Fore.GREEN + "✅ Nonce is valid!" + Style.RESET_ALL)
+    else:
+        print(Fore.RED + "❌ Nonce is not valid" + Style.RESET_ALL)
+
 
 if __name__ == "__main__":
     main()
