@@ -27,6 +27,11 @@ class Transaction:
         )
         return pk_sender_bytes + pk_receiver_bytes + int(self.amount).to_bytes(4, 'big')
 
+
+    def serialize_signed(self) -> bytes:
+        return self.serialize() + self.signature
+
+
     def sign(self, sk_sender: ec.EllipticCurvePrivateKey):
         # Use ECDSA to sign the message
         message = self.serialize()
@@ -58,7 +63,7 @@ class Block:
         self.nonce = 0
 
     def compute_hash(self) -> bytes:
-        serialised_tx = b''.join([tx.serialize() for tx in self.transactions])
+        serialised_tx = b''.join([tx.serialize_signed() for tx in self.transactions])
         # Combine block attributes into a single byte string
         block_content = (self.previous_hash +
                          self.difficulty.to_bytes(4, byteorder='big') +
@@ -75,7 +80,7 @@ class Block:
     def mine(self):
         print("Starting mining...")
         # Pre-compute the constant part outside the loop
-        serialized_tx = b''.join([tx.serialize() for tx in self.transactions])
+        serialized_tx = b''.join([tx.serialize_signed() for tx in self.transactions])
         constant_part = (self.previous_hash +
                          self.difficulty.to_bytes(4, byteorder='big') +
                          serialized_tx)
@@ -133,8 +138,6 @@ def main():
        print("Nonce is valid!")
     else:
         print("Nonce is not valid")
-
-    print(b1)
 
 if __name__ == "__main__":
     main()
