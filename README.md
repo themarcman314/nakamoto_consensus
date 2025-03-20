@@ -10,10 +10,10 @@ git clone https://github.com/themarcman314/nakamoto_consensus.git
 
 
 ## Composition of a block
-header
-The number of 0's corresponds to the mining difficulty
-transactions
-nounce : a number that combined with the header and transactions and hashed gives an output starting with a given number of 0's.
+1.header
+2.The number of 0's corresponds to the mining difficulty
+3.transactions
+4.nounce : a number that combined with the header and transactions and hashed gives an output starting with a given number of 0's.
 
 (header is the hash of the previous block)
 (genesis block has no header)
