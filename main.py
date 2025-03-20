@@ -57,20 +57,20 @@ class Block:
         self.transactions = transactions  # List of Transaction objects
         self.nonce = 0
 
-    #def compute_hash(self) -> bytes:
-    #    serialised_tx = b''.join([tx.serialize() for tx in self.transactions])
-    #    # Combine block attributes into a single byte string
-    #    block_content = (self.previous_hash +
-    #                     self.difficulty.to_bytes(4, byteorder='big') +
-    #                     serialised_tx +
-    #                     self.nonce.to_bytes(4, byteorder='big'))
-    #    digest = hashes.Hash(hashes.SHA256())
-    #    digest.update(block_content)
-    #    return digest.finalize()
+    def compute_hash(self) -> bytes:
+        serialised_tx = b''.join([tx.serialize() for tx in self.transactions])
+        # Combine block attributes into a single byte string
+        block_content = (self.previous_hash +
+                         self.difficulty.to_bytes(4, byteorder='big') +
+                         serialised_tx +
+                         self.nonce.to_bytes(4, byteorder='big'))
+        digest = hashes.Hash(hashes.SHA256())
+        digest.update(block_content)
+        return digest.finalize()
 
-    #def has_valid_proof(self) -> bool:
-    #    block_hash = self.compute_hash().hex()
-    #    return block_hash.startswith('0' * self.difficulty)
+    def has_valid_proof(self) -> bool:
+        block_hash = self.compute_hash().hex()
+        return block_hash.startswith('0' * self.difficulty)
 
     def mine(self):
         print("Starting mining...")
@@ -102,14 +102,13 @@ class Block:
             self.nonce += 1
 
 
-
     def __str__(self) -> str:
         tx_details = "\n".join([str(tx) for tx in self.transactions])
         return (f"Previous Hash: {self.previous_hash.hex()}\n"
                 f"Difficulty: {self.difficulty}\n"
                 f"Transactions:\n{tx_details}\n"
-                f"Nonce: {self.nonce}\n")
-                #            f"Block Hash: {self.compute_hash().hex()}\n")
+                f"Nonce: {self.nonce}\n"
+                f"Block Hash: {self.compute_hash().hex()}\n")
 
 def main():
     sk_key1, pub_key1 = wallet.import_key_pair("keys/ecc-key.pem", "keys/ecc-public.pem")
@@ -125,28 +124,17 @@ def main():
     random_hash.update(random_data.encode("ascii"))
     previous_block_hash = random_hash.finalize()
 
-    b1 = Block(previous_block_hash, 6, [t1])
+    b1 = Block(previous_block_hash, 4, [t1])
     print("\n\n")
     print(b1)
     b1.mine()
 
+    if(b1.has_valid_proof() == True):
+       print("Nonce is valid!")
+    else:
+        print("Nonce is not valid")
 
-    #def verify_block(previous_block_hash:hashes.SHA256, new_block:Block):
-    #    serialised_tx = b''
-    #    for tx in new_block.transactions:
-    #        serialised_tx += serialize_transaction(tx)
-    #    block = new_block.previous_block_hash + int(new_block.difficulty).to_bytes(4, byteorder='big') + serialised_tx + int(new_block.nonce).to_bytes(4, byteorder='big')
-    #    digest = hashes.Hash(hashes.SHA256()) 
-    #    digest.update(block)
-    #    hashed_block = digest.finalize()
-    #    hashed_block_hex = hashed_block.hex()
-    #
-    #    print("Block hash :\n" + Fore.CYAN + f"{hashed_block_hex}" + Style.RESET_ALL)
-    #    if hashed_block_hex.startswith('0' * new_block.difficulty):
-    #        print(Fore.GREEN + "✅ Proof of work is verified!" + Style.RESET_ALL)
-    #        return True
-    #    print(Fore.RED + "Proof of work is did not verified" + Fore.RESET_ALL)
-    #    return False
+    print(b1)
 
 if __name__ == "__main__":
     main()
