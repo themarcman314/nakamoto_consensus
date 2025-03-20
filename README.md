@@ -1,6 +1,6 @@
 ## Install dependancies first :
 ```bash
-pip install cryptography colorama numpy time
+pip install cryptography colorama numpy
 ```
 
 ## Download :
